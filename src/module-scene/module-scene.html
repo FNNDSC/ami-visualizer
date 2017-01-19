@@ -1,0 +1,176 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../../bower_components/paper-range-slider/paper-range-slider.html">
+
+<dom-module id="module-scene">
+    <template>
+        <style>
+        :host{
+            flex:1;
+            display:flex;
+            flex-direction: column;
+        }
+
+        paper-range-slider {
+            --paper-range-slider-knob-color: var(--app-accent-color);
+            --paper-range-slider-active-color: var(--app-accent-color);
+            --paper-range-slider-pin-color: var(--app-accent-color);
+        }
+
+        .paper-range-slider {
+            display: flex;
+        }
+
+        .paper-range-slider paper-input{
+            width: 50px;
+            overflow: hidden;
+        }
+
+        .controls-scene-select {
+            position: relative;
+            padding: 10px;
+            flex: 1;
+            min-height: 100px;
+            max-height: 300px;
+            display:flex;
+        }
+
+        .controls-scene-select-list {
+            flex:1;
+
+            border: 1px solid #424242;
+            background-color: #fff;
+
+            overflow: auto;
+        }
+        
+        paper-fab {
+            bottom: 20px;
+            right: 20px;
+            position: absolute;
+        }
+
+        #filesinput {
+            display: none;
+        }
+
+        .controls-scene-properties {
+            flex:1;
+        }
+
+        .controls-scene-properties-pages {
+            margin: 10px;
+        }
+
+        paper-dropdown-menu {
+            width: 100%;
+        }
+        </style>
+
+        <div class="controls-scene-select">
+            <div class="controls-scene-select-list">
+
+            <paper-item>t1 from brain</paper-item>
+            <paper-item>mesh from freesurfer</paper-item>
+            <paper-item>another t1</paper-item>
+            <paper-item>t1 from brain</paper-item>
+            <paper-item>mesh from freesurfer</paper-item>
+            <paper-item>another t1</paper-item>
+            <paper-item>t1 from brain</paper-item>
+            <paper-item>mesh from freesurfer</paper-item>
+            <paper-item>another t1</paper-item>
+            <paper-item>t1 from brain</paper-item>
+            <paper-item>mesh from freesurfer</paper-item>
+            <paper-item>another t1</paper-item>
+
+            </div>
+
+            <paper-fab mini icon="icons:add" title="add" on-tap="clickInput"></paper-fab>
+            <input type="file" id="filesinput" on-change="localFS_load" multiple="">
+
+        </div>
+
+        <div class="controls-scene-properties">
+            <div class="controls-scene-properties-controls">
+
+            <paper-tabs selected="{{selected}}">
+                <paper-tab>STYLE</paper-tab>
+                <paper-tab>ABOUT</paper-tab>
+                <paper-tab>MORE</paper-tab>
+            </paper-tabs>
+
+            <iron-pages class="controls-scene-properties-pages" selected="{{selected}}">
+                
+                <div class="controls-scene-properties-appearance">
+                <div>
+                    <div>Window/Level</div>
+                    <div class="paper-range-slider">
+                    <paper-input></paper-input><paper-range-slider style="width:100%"></paper-range-slider><paper-input></paper-input>
+                    </div>
+                </div>
+                <div>
+                    <div>Threshold</div>
+                    <div class="paper-range-slider">
+                    <paper-input></paper-input><paper-range-slider style="width:100%"></paper-range-slider><paper-input></paper-input>
+                    </div>
+                </div>
+                <div>
+                    <div>LUT</div>
+                    <div>
+                    <paper-dropdown-menu label="Lookup table" vertical-align="bottom">
+                        <paper-listbox class="dropdown-content" selected="0">
+                        <paper-item>Black/White</paper-item>
+                        <paper-item>Rainbow</paper-item>
+                        <paper-item>Red</paper-item>
+                        <paper-item>Heat</paper-item>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    </div>
+                </div>
+                </div>
+
+                <div class="controls-scene-properties-info">
+                <div>Image dimensions</div>
+                <div>Orientation</div>
+                <div>Nb of vertices</div>
+                ...
+                </div>
+
+                <div>SETTINGS</div>
+            </iron-pages>
+
+            </div>
+        </div>
+
+    </template>
+    <script>
+        Polymer({
+            is: 'module-scene',
+            properties: {
+                files: {
+                    type: Array,
+                    value: [],
+                },
+                plugin: {
+                    type: Object,
+                    value: {}
+                },
+                selected: {
+                    type: String,
+                    value: 0,
+                },
+            }
+        });
+    </script>
+
+</dom-module>

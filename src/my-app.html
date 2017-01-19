@@ -14,22 +14,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
-<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-
-<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
-<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
-<link rel="import" href="../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
-<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
-<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
-<link rel="import" href="../bower_components/paper-range-slider/paper-range-slider.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 
-<link rel="import" href="my-view1.html">
-<link rel="import" href="my-icons.html">
+<link rel="import" href="module-manager/module-manager.html">
+<link rel="import" href="module-fileBrowser/module-fileBrowser.html">
+<link rel="import" href="module-scene/module-scene.html">
+<link rel="import" href="module-editor/module-editor.html">
 
 <dom-module id="my-app">
   <template>
@@ -108,87 +98,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         background-color: var(--app--light-primary-color);
       }
 
-      .controls-pages{
-        flex: 1;
-        display:flex;
-        flex-direction: column;
-        overflow: auto;
-      }
-
-      .controls-scene {
-        flex:1;
-        display:flex;
-        flex-direction: column;
-      }
-
-      .controls-scene-select {
-        position: relative;
-        padding: 10px;
-        flex: 1;
-        min-height: 100px;
-        max-height: 300px;
-        display:flex;
-      }
-
-      .controls-scene-select-list {
-        flex:1;
-
-        border: 1px solid #424242;
-        background-color: #fff;
-
-        overflow: auto;
-      }
-      
-      paper-fab {
-        bottom: 20px;
-        right: 20px;
-        position: absolute;
-      }
-
-      #filesinput {
-        display: none;
-      }
-
-      .controls-scene-properties {
-        flex:1;
-      }
-
-      .controls-scene-properties-pages {
-        margin: 10px;
-      }
-
-      .controls-editor {
-        flex:1;
-        display:flex;
-        flex-direction: column;
-      }
-
-      .controls-editor-general {
-        margin: 10px;
-      }
-
-      .controls-editor-select-segment{
-        position: relative;        
-      }
-
-      .controls-editor-select-segment-list{
-        flex:1;
-        max-height: 200px;
-
-        border: 1px solid #424242;
-        background-color: #fff;
-
-        overflow: auto;      
-      }
-
-      .controls-editor-segment {
-        flex: 1;
-      }
-
-      paper-dropdown-menu {
-        width: 100%;
-      }
-
       .renderers {
         width: 100%;
         display: flex;
@@ -237,6 +146,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         bottom: 0px;
       }
 
+
+
     </style>
 
     <app-toolbar>
@@ -244,6 +155,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </app-toolbar>
 
     <div class="content">
+
+      <module-manager class="controls">
+        <module-fileBrowser id="module-fileBrowser" class="module" label="data"></module-fileBrowser>
+        <module-scene id="module-scene" class="module" label="scene"></module-scene>
+        <module-editor id="module-editor" class="module" label="editor"></module-editor>
+      </module-manager>
 
       <div class="renderers">
         <div class="v1 big"></div>
@@ -258,170 +175,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </div>
       </div>
 
-      <div class="controls">
-
-        <paper-tabs selected="{{selected}}">
-          <paper-tab>SCENE</paper-tab>
-          <paper-tab>EDITOR</paper-tab>
-          <paper-tab>SETTINGS</paper-tab>
-        </paper-tabs>
-
-        <iron-pages class="controls-pages" selected="{{selected}}">
-
-          <!-- CONTROLS PAGE -->
-          <div class="controls-scene">
-            <div class="controls-scene-select">
-              <div class="controls-scene-select-list">
-
-                <paper-item>t1 from brain</paper-item>
-                <paper-item>mesh from freesurfer</paper-item>
-                <paper-item>another t1</paper-item>
-                <paper-item>t1 from brain</paper-item>
-                <paper-item>mesh from freesurfer</paper-item>
-                <paper-item>another t1</paper-item>
-                <paper-item>t1 from brain</paper-item>
-                <paper-item>mesh from freesurfer</paper-item>
-                <paper-item>another t1</paper-item>
-                <paper-item>t1 from brain</paper-item>
-                <paper-item>mesh from freesurfer</paper-item>
-                <paper-item>another t1</paper-item>
-
-              </div>
-
-              <paper-fab mini icon="icons:add" title="add" on-tap="clickInput"></paper-fab>
-              <input type="file" id="filesinput" on-change="localFS_load" multiple="">
-
-            </div>
-
-            <div class="controls-scene-properties">
-              <div class="controls-scene-properties-controls">
-
-                <paper-tabs selected="{{selectedproperty}}">
-                  <paper-tab>STYLE</paper-tab>
-                  <paper-tab>ABOUT</paper-tab>
-                  <paper-tab>MORE</paper-tab>
-                </paper-tabs>
-
-                <iron-pages class="controls-scene-properties-pages" selected="{{selectedproperty}}">
-                  
-                  <div class="controls-scene-properties-appearance">
-                    <div>
-                      <div>Window/Level</div>
-                      <div class="paper-range-slider">
-                        <paper-input></paper-input><paper-range-slider style="width:100%"></paper-range-slider><paper-input></paper-input>
-                      </div>
-                    </div>
-                    <div>
-                      <div>Threshold</div>
-                      <div class="paper-range-slider">
-                        <paper-input></paper-input><paper-range-slider style="width:100%"></paper-range-slider><paper-input></paper-input>
-                      </div>
-                    </div>
-                    <div>
-                      <div>LUT</div>
-                      <div>
-                        <paper-dropdown-menu label="Lookup table" vertical-align="bottom">
-                          <paper-listbox class="dropdown-content" selected="0">
-                            <paper-item>Black/White</paper-item>
-                            <paper-item>Rainbow</paper-item>
-                            <paper-item>Red</paper-item>
-                            <paper-item>Heat</paper-item>
-                          </paper-listbox>
-                        </paper-dropdown-menu>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="controls-scene-properties-info">
-                    <div>Image dimensions</div>
-                    <div>Orientation</div>
-                    <div>Nb of vertices</div>
-                    ...
-                  </div>
-
-                  <div>SETTINGS</div>
-                </iron-pages>
-
-              </div>
-            </div>
-          </div>
-
-          <!-- EDITOR PAGE -->
-          <div class="controls-editor">
-
-            <div class="controls-editor-general">
-
-              <paper-dropdown-menu label="Segmentation">
-                <paper-listbox class="dropdown-content">
-                  <paper-item>Create new segmentation</paper-item>
-                </paper-listbox>
-              </paper-dropdown-menu>
-
-              <paper-dropdown-menu label="Master Volume">
-                <paper-listbox class="dropdown-content">
-                  <paper-item>t1 brain scan</paper-item>
-                  <paper-item>t2 from the foot</paper-item>
-                  <paper-item>something else</paper-item>
-                </paper-listbox>
-              </paper-dropdown-menu>
-
-              <div class="controls-editor-select-segment">
-                <div class="controls-editor-select-segment-list">
-
-                  <paper-item>t1 from brain</paper-item>
-                  <paper-item>mesh from freesurfer</paper-item>
-                  <paper-item>another t1</paper-item>
-                  <paper-item>t1 from brain</paper-item>
-                  <paper-item>mesh from freesurfer</paper-item>
-                  <paper-item>another t1</paper-item>
-                  <paper-item>t1 from brain</paper-item>
-                  <paper-item>mesh from freesurfer</paper-item>
-                  <paper-item>another t1</paper-item>
-                  <paper-item>t1 from brain</paper-item>
-                  <paper-item>mesh from freesurfer</paper-item>
-                  <paper-item>another t1</paper-item>
-
-                </div>
-
-                <paper-fab mini icon="icons:add" title="add"></paper-fab>
-
-              </div>
-            </div>
-
-            <div class="controls-editor-segment">
-
-              <paper-tabs selected="{{selectedsegment}}">
-                <paper-tab>EDIT</paper-tab>
-                <paper-tab>ABOUT</paper-tab>
-                <paper-tab>MORE</paper-tab>
-              </paper-tabs>
-
-                <iron-pages class="controls-editor-segment-pages" selected="{{selectedsegment}}">
-                  
-                  <!-- CONTROL APPEARANCE OF A PROPERTY-->
-                  <div class="controls-scene-properties-appearance">
-                    EDIT
-                  </div>
-
-                  <!-- INFO ABOUT SELECTED PROPERTY-->
-                  <div class="controls-scene-properties-info">
-                    ABOUT
-                  </div>
-
-                  <!-- NOT SURE YET -->
-                  <div>SETTINGS</div>
-                </iron-pages>
-
-            </div>
-
-          </div>
-
-          <!-- SETTINGS PAGE -->
-          <div>SETTINGS</div>
-
-        </iron-pages>
-
-      </div>
     </div>
 
   </template>
@@ -430,15 +183,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     Polymer({
       is: 'my-app',
       properties :{
-        selected: {
-          value: 0
-        },
-        selectedproperty: {
-          value: 0
-        },
-        selectedsegment: {
-          value: 0
-        }
       },
 
       clickInput: function( evt ){

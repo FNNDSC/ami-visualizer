@@ -1,0 +1,133 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-submenu.html">
+
+<dom-module id="module-fileBrowser">
+    <template>
+        <style>
+        :host{
+            flex:1;
+            display:flex;
+            flex-direction: column;
+        }
+        .controls-filebrowser-select {
+            position: relative;
+            padding: 10px;
+            flex: 1;
+            display:flex;
+            flex-direction: column;
+        }
+
+        .controls-filebrowser-quicknav {
+            border: 1px solid #424242;
+            background-color: #fff;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .controls-filebrowser-process {
+            /*border: 1px solid #424242;
+            background-color: #fff;*/
+            padding: 10px;
+            /*margin-bottom: 10px;*/
+            display:flex;
+        }
+
+        .controls-filebrowser-process > paper-button {
+            flex: 1;
+            background-color: var(--app-accent-color);
+            color: #ffffff;
+        }
+
+        .controls-scene-select-list {
+            flex:1;
+
+            border: 1px solid #424242;
+            background-color: #fff;
+
+            overflow: auto;
+        }
+
+        paper-item {
+            --paper-item: {
+                cursor: pointer;
+            };
+        }
+
+        .sublist paper-item {
+            padding-left: 30px;
+        }
+
+        .sublist2 paper-item {
+            padding-left: 50px;
+        }
+        </style>
+
+          <!-- File browser PAGE -->
+            <div class="controls-filebrowser-select">
+
+              <div class="controls-filebrowser-quicknav">
+                <div>Current plugin: #23 - Tractograhy</div>
+                <div> Previous : #12 - Pacs Pull </div>
+                <div> Next : #30 - MRI Convert  - #54 Recon-all</div>
+              </div>
+
+              <div class="controls-scene-select-list">
+                <paper-submenu label="paper-submenu">
+                  <paper-item class="menu-trigger">paper-submenu</paper-item>
+                  <paper-menu class="menu-content sublist">
+                    <paper-submenu label="Properties">
+                      <paper-item class="menu-trigger">Properties</paper-item>
+                      <paper-menu class="menu-content sublist2">
+                        <paper-item>opened</paper-item>
+                      </paper-menu>
+                      </paper-submenu>
+                      <paper-submenu label="Methods">
+                        <paper-item class="menu-trigger">Methods</paper-item>
+                        <paper-menu class="menu-content sublist2">
+                          <paper-item>open()</paper-item>
+                          <paper-item>close()</paper-item>
+                          <paper-item>toggle()</paper-item>
+                        </paper-menu>
+                    </paper-submenu>
+                  </paper-menu>
+                </paper-submenu>
+
+                <paper-submenu label="Methods">
+                  <paper-item class="menu-trigger">Methods</paper-item>
+                  <paper-menu class="menu-content sublist2">
+                    <paper-item>open()</paper-item>
+                    <paper-item>close()</paper-item>
+                    <paper-item>toggle()</paper-item>
+                  </paper-menu>
+                </paper-submenu>
+
+              </div>
+
+              <div class="controls-filebrowser-process">
+                <paper-button>Process data</paper-button>
+              </div>
+            </div>
+
+    </template>
+    <script>
+        Polymer({
+            is: 'module-fileBrowser',
+            properties: {
+                files: {
+                    type: Array,
+                    value: [],
+                },
+                plugin: {
+                    type: Object,
+                    value: {}
+                },
+            }
+        });
+    </script>
+
+</dom-module>
