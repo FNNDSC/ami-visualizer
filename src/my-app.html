@@ -89,7 +89,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       .controls {
-        width: 400px;
+        min-width: 400px;
+        max-width: 400px;
         height:100%;
 
         display: flex;
@@ -157,7 +158,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <div class="content">
 
       <module-manager class="controls">
-        <module-fileBrowser id="module-fileBrowser" class="module" label="data"></module-fileBrowser>
+        <module-fileBrowser id="module-fileBrowser" class="module" label="data" files=[[files]]></module-fileBrowser>
         <module-scene id="module-scene" class="module" label="scene"></module-scene>
         <module-editor id="module-editor" class="module" label="editor"></module-editor>
       </module-manager>
@@ -183,6 +184,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     Polymer({
       is: 'my-app',
       properties :{
+        files: {
+          type: Array,
+          value: [
+            {data:{
+              fname: 'Ixcvxcvxcv',
+            }},
+            {data:{
+              fname: 'Ixcvxcvxcv/AM',
+            }},
+            {data:{
+              fname: 'yes',
+            }},
+            {data:{
+              fname: 'a/cool/file',
+            }},
+            {data:{
+              fname: 'me/too',
+            }}
+          ]
+        }
       },
 
       clickInput: function( evt ){
