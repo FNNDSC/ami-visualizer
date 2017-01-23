@@ -67,6 +67,6 @@
 
   </template>
 
-  <script>Polymer({is:"recursive-tree",properties:{tree:{type:Array,observer:"_treeChanged"}},_selectNode:function(e){console.log(e)},_treeChanged:function(){},_view:function(e){e.stopPropagation(),e.preventDefault(),console.log(e.model.__data__.item)},_computeIcon:function(e){return e.children.length?"icons:folder":"editor:insert-drive-file"}});</script>
+  <script>Polymer({is:"recursive-tree",properties:{tree:{type:Array,observer:"_treeChanged"}},_selectNode:function(e){console.log(e)},_treeChanged:function(){},_view:function(e){e.stopPropagation(),e.preventDefault(),console.log(e.model.__data__.item);var e=new CustomEvent("load-data",{detail:{data:e.model.__data__.item}});this.dispatchEvent(e)},_computeIcon:function(e){return e.children.length?"icons:folder":"editor:insert-drive-file"}});</script>
 
 </dom-module></body></html>

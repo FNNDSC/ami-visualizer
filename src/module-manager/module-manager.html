@@ -2,6 +2,7 @@
 
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 
+
 <link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../../bower_components/paper-tabs/paper-tab.html">
 
@@ -23,12 +24,13 @@
             
             
         </paper-tabs>
+                                
 
         <iron-pages class="controls-pages" selected="{{selected}}">
           <slot id="modules"></slot>
         </iron-pages>
 
     </template>
-    <script>Polymer({is:"module-manager",properties:{modules:{type:Array,value:[]},selected:{type:String,value:0}},ready:function(){const e=this.$.modules.getDistributedNodes();for(var t=0;t<e.length;t++){var s=e[t];if(s.classList&&s.classList.contains("module")){const l=s.id,i=s.getAttribute("label"),o={id:l,label:i,node:s};this.push("modules",o)}}}});</script>
+    <script>Polymer({is:"module-manager",properties:{modules:{type:Array,value:[]},selected:{type:String,value:0},loading:{type:Boolean,value:!1}},ready:function(){const e=this.$.modules.getDistributedNodes();for(var t=0;t<e.length;t++){var s=e[t];if(s.classList&&s.classList.contains("module")){const l=s.id,o=s.getAttribute("label"),a={id:l,label:o,node:s};this.push("modules",a)}}}});</script>
 
 </dom-module></body></html>
