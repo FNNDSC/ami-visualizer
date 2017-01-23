@@ -5,6 +5,7 @@
   ],
   "license": "https://polymer.github.io/LICENSE.txt",
   "dependencies": {
+    "ami-import": "NicolasRannou/ami-import#^0.0.14",
     "app-layout": "PolymerElements/app-layout#^0.10.0",
     "app-route": "PolymerElements/app-route#^0.9.0",
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",

@@ -2,12 +2,17 @@
 
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
 
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../../bower_components/paper-tabs/paper-tab.html">
 <link rel="import" href="../../bower_components/paper-range-slider/paper-range-slider.html">
@@ -75,23 +80,63 @@
         paper-dropdown-menu {
             width: 100%;
         }
+
+        paper-item, paper-icon-item {
+            --paper-item: {
+                cursor: pointer;
+            };
+        }
+
+        .avatar {
+            display: inline-block;
+            box-sizing: border-box;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--paper-amber-500);
+        }
+
+        .grey {
+            background-color: #d9d9d9;
+        }
+        
+        paper-progress {
+            width: inherit;
+        }
         </style>
 
         <div class="controls-scene-select">
             <div class="controls-scene-select-list">
 
-            <paper-item>t1 from brain</paper-item>
-            <paper-item>mesh from freesurfer</paper-item>
-            <paper-item>another t1</paper-item>
-            <paper-item>t1 from brain</paper-item>
-            <paper-item>mesh from freesurfer</paper-item>
-            <paper-item>another t1</paper-item>
-            <paper-item>t1 from brain</paper-item>
-            <paper-item>mesh from freesurfer</paper-item>
-            <paper-item>another t1</paper-item>
-            <paper-item>t1 from brain</paper-item>
-            <paper-item>mesh from freesurfer</paper-item>
-            <paper-item>another t1</paper-item>
+                <template is="dom-repeat" items="[[scene]]">
+                            <paper-icon-item class="menu-trigger"  on-tap="_view">
+            <!--<iron-icon icon$="{{_computeIcon(item)}}" item="[[item]]"></iron-icon>{{item.label}}-->
+            <!--<div class="avatar grey" item-icon>  </div>-->
+            <paper-icon-button item-icon icon$="{{_computeIcon(item)}}" alt="favourite this!" class="avatar grey">
+            </paper-icon-button>
+            <paper-item-body two-line>
+
+
+            <!--</paper-item-body>
+                        <paper-icon-button icon="icons:clear" alt="favourite this!">
+            </paper-icon-button>-->
+    <template is="dom-if" if="{{item.seriesInstanceUID}}">
+            <div>{{item.seriesInstanceUID}}</div>
+            <div secondary>contains [[item.stack.0.frame.length]] frames</div>
+    </template>
+
+
+    <template is="dom-if" if="{{!item.seriesInstanceUID}}">
+            <div secondary>Loading data...</div>
+            <paper-progress indeterminate class="blue"></paper-progress>
+    </template>
+
+            </paper-item-body>
+
+        </paper-icon-item>
+
+                    <!--<paper-item item="[[item]]">[[item._seriesInstanceUID]]</paper-item>-->
+                </template>
 
             </div>
 
@@ -103,13 +148,13 @@
         <div class="controls-scene-properties">
             <div class="controls-scene-properties-controls">
 
-            <paper-tabs selected="{{selected}}">
+            <paper-tabs selected="{{selectedProperty}}">
                 <paper-tab>STYLE</paper-tab>
                 <paper-tab>ABOUT</paper-tab>
                 <paper-tab>MORE</paper-tab>
             </paper-tabs>
 
-            <iron-pages class="controls-scene-properties-pages" selected="{{selected}}">
+            <iron-pages class="controls-scene-properties-pages" selected="{{selectedProperty}}">
                 
                 <div class="controls-scene-properties-appearance">
                 <div>
@@ -157,19 +202,34 @@
         Polymer({
             is: 'module-scene',
             properties: {
-                files: {
+                scene: {
                     type: Array,
                     value: [],
                 },
-                plugin: {
-                    type: Object,
-                    value: {}
-                },
-                selected: {
+                selectedProperty: {
                     type: String,
                     value: 0,
                 },
-            }
+                selected: {
+                    type: Object,
+                    value: {},
+                },
+            },
+            observers: [
+              '_sceneChanged(scene.*)'
+            ],
+            _sceneChanged: function() {
+                console.log(this.scene);
+            },
+            _computeIcon: function(item){
+                console.log(item);
+                return item.stack[0].frame.length? 'icons:folder' : 'editor:insert-drive-file';
+           },
+           _view: function(event){
+                event.stopPropagation();
+                event.preventDefault();
+                console.log(event.model.__data__.item);
+           }
         });
     </script>
 

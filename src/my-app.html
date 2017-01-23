@@ -16,6 +16,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 
+<link rel="import" href="../bower_components/ami-import/ami-import.html">
+
 <link rel="import" href="module-manager/module-manager.html">
 <link rel="import" href="module-fileBrowser/module-fileBrowser.html">
 <link rel="import" href="module-scene/module-scene.html">
@@ -157,9 +159,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="content">
 
-      <module-manager class="controls">
-        <module-fileBrowser id="module-fileBrowser" class="module" label="data" files=[[files]]></module-fileBrowser>
-        <module-scene id="module-scene" class="module" label="scene"></module-scene>
+      <module-manager id="manager" class="controls">
+        <module-fileBrowser id="module-fileBrowser" class="module" label="data" files=[[files]] on-load-data="_loadData"></module-fileBrowser>
+        <module-scene id="module-scene" class="module" label="scene" scene="[[scene]]"></module-scene>
         <module-editor id="module-editor" class="module" label="editor"></module-editor>
       </module-manager>
 
@@ -203,14 +205,90 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               fname: 'me/too',
             }}
           ]
+        },
+        sceneMap: {
+          type: Object,
+          value: new Map(),
+          // observer: '_sceneChanged',
+        },
+        scene: {
+          type: Array,
+          value: [],
+          observer: '_sceneChanged',
         }
       },
 
-      clickInput: function( evt ){
+      observers: [
+        '_sceneChanged(scene.*)'
+      ],
+
+      _loadData: function(event) {
+        var data = event.detail.data;
+        // load if not alread in scene!
+        if(!this.sceneMap.has(data.id)){
+          this.sceneMap.set(data.id, data);
+          // this.scene[data.id] = data;
+          // this.set(`scene.${data.id}`, data);
+          // ami.load.then();
+        }
+
+        this.$.manager.selected = 1;
+        // this.$.manager.loading = true;
+
+        this.push('scene', {
+          stack: [{
+            seriesInstanceUID: 0,
+            frame: [
+              ]
+           }]
+          });
+          var index = this.scene.length - 1;
+
+        // fun 
+        var LoadersVolume = AMI.default.Loaders.Volume;
+        var loader = new LoadersVolume();
+
+        var t2 = [
+          '36444280', '36444294', '36444308', '36444322', '36444336',
+          '36444350', '36444364', '36444378', '36444392', '36444406',
+          '36748256', '36444434', '36444448', '36444462', '36444476',
+          '36444490', '36444504', '36444518', '36444532', '36746856',
+          '36746870', '36746884', '36746898', '36746912', '36746926',
+          '36746940', '36746954', '36746968', '36746982', '36746996',
+          '36747010', '36747024', '36748200', '36748214', '36748228',
+          '36748270', '36748284', '36748298', '36748312', '36748326',
+          '36748340', '36748354', '36748368', '36748382', '36748396',
+          '36748410', '36748424', '36748438', '36748452', '36748466',
+          '36748480', '36748494', '36748508', '36748522', '36748242'
+        ];
+
+        var files = t2.map(function(v) {
+          return 'https://cdn.rawgit.com/FNNDSC/data/master/dicom/adi_brain/' + v;
+        });
+
+        // load sequence for all files
+        loader.load(files)
+        .then(function() {
+          var series = loader.data[0].mergeSeries(loader.data);
+          this.set(['scene', index], series[0]);
+          this.$.manager.loading = false;
+          // attach it to scene element.
+          console.log(series);
+        }.bind(this));
+
+      },
+
+      _sceneChanged: function(){
+
+        console.log(this.scene);
+
+      },
+
+      clickInput: function(evt) {
         this.$.filesinput.click();
       },
 
-      localFS_load: function( evt ){
+      localFS_load: function(evt) {
         // convert files object to an array
         var files = [];
         for ( var i = 0; i < evt.target.files.length; i++ ) {

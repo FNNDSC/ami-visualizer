@@ -95,6 +95,11 @@
         event.stopPropagation();
         event.preventDefault();
         console.log(event.model.__data__.item);
+        var  event = new CustomEvent(('load-data'), {
+        detail: {
+          data: event.model.__data__.item}
+        });
+        this.dispatchEvent(event);
     },
     _computeIcon: function(item){
         return item.children.length? 'icons:folder' : 'editor:insert-drive-file';
