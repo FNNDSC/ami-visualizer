@@ -18,6 +18,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/ami-import/ami-import.html">
 
+<link rel="import" href="ami-3d/ami-3d.html">
+
 <link rel="import" href="module-manager/module-manager.html">
 <link rel="import" href="module-fileBrowser/module-fileBrowser.html">
 <link rel="import" href="module-scene/module-scene.html">
@@ -166,7 +168,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </module-manager>
 
       <div class="renderers">
-        <div class="v1 big"></div>
+        <ami-3d id='r3d' class="v1 big"></ami-3d>
         <div class="v2 small">
           <paper-slider value="21" pin></paper-slider>
         </div>
@@ -236,13 +238,35 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // this.$.manager.loading = true;
 
         this.push('scene', {
-          stack: [{
-            seriesInstanceUID: 0,
-            frame: [
-              ]
-           }]
-          });
-          var index = this.scene.length - 1;
+          id: 0,
+          type: 'volume',
+          style: {
+            minMax: [0, 100],
+            windowLevel: [20, 80],
+            threshold: [5, 95],
+            lut: 'BW',
+          },
+          info: {
+            size: [10,20],
+            images: 50,
+            seriesNumber: 5,
+            thickness: 1,
+            patientID: 'I\'m patient id',
+            patientBirthdate: '20142424',
+            patientAge: '234',
+            studyDescription: 'I am the stud desc',
+            seriesDescription: 'series desc',
+            stationName: 'MRE453',
+            modality: 'MR',
+            sequenceName: 'seq name',
+            studyDate: 'stud date',
+            seriesDate: 'series date',
+            acquisitionDate: 'acq date',
+            acquisitionTime: 'acq time',
+          },
+          amiObj: null
+        });
+        var index = this.scene.length - 1;
 
         // fun 
         var LoadersVolume = AMI.default.Loaders.Volume;
@@ -270,10 +294,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         loader.load(files)
         .then(function() {
           var series = loader.data[0].mergeSeries(loader.data);
-          this.set(['scene', index], series[0]);
+          var stack = series[0].stack[0];
+          stack.prepare();
+          this.set(['scene', index, 'amiObj'], stack);
           this.$.manager.loading = false;
           // attach it to scene element.
-          console.log(series);
+          this.$['module-scene'].selected = this.scene[index];
+
+          var HelpersStack = AMI.default.Helpers.Stack;
+          var stackHelper = new HelpersStack(stack);
+          stackHelper.bbox.color = 0x8BC34A;
+          stackHelper.border.color = 0xF44336;
+          this.$.r3d.add(stackHelper);
         }.bind(this));
 
       },

@@ -120,13 +120,13 @@
             <!--</paper-item-body>
                         <paper-icon-button icon="icons:clear" alt="favourite this!">
             </paper-icon-button>-->
-    <template is="dom-if" if="{{item.seriesInstanceUID}}">
-            <div>{{item.seriesInstanceUID}}</div>
-            <div secondary>contains [[item.stack.0.frame.length]] frames</div>
+    <template is="dom-if" if="{{item.amiObj}}">
+            <div>[[item.info.studyDescription]]</div>
+            <div secondary>[[item.info.seriesDescription]] ([[item.info.images]] images)</div>
     </template>
 
 
-    <template is="dom-if" if="{{!item.seriesInstanceUID}}">
+    <template is="dom-if" if="{{!item.amiObj}}">
             <div secondary>Loading data...</div>
             <paper-progress indeterminate class="blue"></paper-progress>
     </template>
@@ -157,31 +157,35 @@
             <iron-pages class="controls-scene-properties-pages" selected="{{selectedProperty}}">
                 
                 <div class="controls-scene-properties-appearance">
-                <div>
-                    <div>Window/Level</div>
-                    <div class="paper-range-slider">
-                    <paper-input></paper-input><paper-range-slider style="width:100%"></paper-range-slider><paper-input></paper-input>
-                    </div>
-                </div>
-                <div>
-                    <div>Threshold</div>
-                    <div class="paper-range-slider">
-                    <paper-input></paper-input><paper-range-slider style="width:100%"></paper-range-slider><paper-input></paper-input>
-                    </div>
-                </div>
-                <div>
-                    <div>LUT</div>
-                    <div>
-                    <paper-dropdown-menu label="Lookup table" vertical-align="bottom">
-                        <paper-listbox class="dropdown-content" selected="0">
-                        <paper-item>Black/White</paper-item>
-                        <paper-item>Rainbow</paper-item>
-                        <paper-item>Red</paper-item>
-                        <paper-item>Heat</paper-item>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                    </div>
-                </div>
+                    <!--volume selected-->
+                    <template is="dom-if" if="{{_volumeSelected(selected)}}">
+                        <div>
+                            <div>Window/Level</div>
+                            <div class="paper-range-slider">
+                            <paper-input value="{{wlvalmin}}"></paper-input><paper-range-slider min="{{wlmin}}" max="{{wlmax}}" value-min="{{wlvalmin}}" value-max="{{wlvalmax}}"  style="width:100%"></paper-range-slider><paper-input value="{{wlvalmax}}"></paper-input>
+                            </div>
+                        </div>
+                        <div>
+                            <div>Threshold</div>
+                            <div class="paper-range-slider">
+                            <paper-input value="{{thvalmin}}"></paper-input><paper-range-slider min="{{thmin}}" max="{{thmax}}" value-min="{{thvalmin}}" value-max="{{thvalmax}}"  style="width:100%"></paper-range-slider><paper-input value="{{thvalmax}}"></paper-input>
+                            </div>
+                        </div>
+                        <div>
+                            <div>LUT</div>
+                            <div>
+                            <paper-dropdown-menu label="Lookup table" vertical-align="bottom">
+                                <paper-listbox class="dropdown-content" selected="0">
+                                <paper-item>Black/White</paper-item>
+                                <paper-item>Rainbow</paper-item>
+                                <paper-item>Red</paper-item>
+                                <paper-item>Heat</paper-item>
+                                </paper-listbox>
+                            </paper-dropdown-menu>
+                            </div>
+                        </div>
+                    </template>
+                
                 </div>
 
                 <div class="controls-scene-properties-info">
@@ -212,7 +216,32 @@
                 },
                 selected: {
                     type: Object,
-                    value: {},
+                    observer: '_selectedChanged',
+                },
+                // volume specific properties
+                wlmin: {
+                    type: Number,
+                },
+                wlmax: {
+                    type: Number,
+                },
+                wlvalmin: {
+                    type: Number,
+                },
+                wlvalmax: {
+                    type: Number,
+                },
+                thmin: {
+                    type: Number,
+                },
+                thmax: {
+                    type: Number,
+                },
+                thvalmin: {
+                    type: Number,
+                },
+                thvalmax: {
+                    type: Number,
                 },
             },
             observers: [
@@ -223,12 +252,33 @@
             },
             _computeIcon: function(item){
                 console.log(item);
-                return item.stack[0].frame.length? 'icons:folder' : 'editor:insert-drive-file';
+                return item.type === 'volume' ? 'icons:folder' : 'editor:insert-drive-file';
            },
            _view: function(event){
                 event.stopPropagation();
                 event.preventDefault();
                 console.log(event.model.__data__.item);
+                this.set('selected', event.model.__data__.item);
+           },
+           _selectedChanged: function(){
+               // set window Level
+               this.wlmin = this.selected.amiObj.minMax[0];
+               this.wlmax = this.selected.amiObj.minMax[1];
+               this.wlvalmin = Math.round( this.selected.amiObj.windowCenter - this.selected.amiObj.windowWidth / 2);
+               this.wlvalmax = Math.round( this.selected.amiObj.windowCenter + this.selected.amiObj.windowWidth / 2);
+
+               // set threshold
+               this.thmin = this.selected.amiObj.minMax[0];
+               this.thmax = this.selected.amiObj.minMax[1];
+               this.thvalmin = this.thmin;
+               this.thvalmax = this.thmax;
+
+               // set LUT somehow...
+           },
+           _volumeSelected: function(selected){
+               if(!selected) return false;
+
+               return selected.type === 'volume';
            }
         });
     </script>
