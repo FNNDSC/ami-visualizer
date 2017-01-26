@@ -107,7 +107,8 @@
 
             _treeChanged: function(event){
                 console.log(event.detail.tree);
-                this.set('tree', event.detail.tree);
+                // hack to hide the root
+                this.set('tree', event.detail.tree[0].children);
             }
         });
     </script>

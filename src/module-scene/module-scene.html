@@ -11,6 +11,7 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
@@ -85,6 +86,9 @@
             --paper-item: {
                 cursor: pointer;
             };
+            --paper-item-selected: {
+                background-color: var(--app-light-accent-color);
+            }
         }
 
         .avatar {
@@ -108,18 +112,13 @@
         <div class="controls-scene-select">
             <div class="controls-scene-select-list">
 
+                <paper-listbox selected="{{selectedIndex}}">
                 <template is="dom-repeat" items="[[scene]]">
                             <paper-icon-item class="menu-trigger"  on-tap="_view">
-            <!--<iron-icon icon$="{{_computeIcon(item)}}" item="[[item]]"></iron-icon>{{item.label}}-->
-            <!--<div class="avatar grey" item-icon>  </div>-->
             <paper-icon-button item-icon icon$="{{_computeIcon(item)}}" alt="favourite this!" class="avatar grey">
             </paper-icon-button>
             <paper-item-body two-line>
 
-
-            <!--</paper-item-body>
-                        <paper-icon-button icon="icons:clear" alt="favourite this!">
-            </paper-icon-button>-->
     <template is="dom-if" if="{{item.amiObj}}">
             <div>[[item.info.studyDescription]]</div>
             <div secondary>[[item.info.seriesDescription]] ([[item.info.images]] images)</div>
@@ -135,8 +134,8 @@
 
         </paper-icon-item>
 
-                    <!--<paper-item item="[[item]]">[[item._seriesInstanceUID]]</paper-item>-->
                 </template>
+                </paper-listbox>
 
             </div>
 
@@ -162,13 +161,13 @@
                         <div>
                             <div>Window/Level</div>
                             <div class="paper-range-slider">
-                            <paper-input value="{{wlvalmin}}"></paper-input><paper-range-slider min="{{wlmin}}" max="{{wlmax}}" value-min="{{wlvalmin}}" value-max="{{wlvalmax}}"  style="width:100%"></paper-range-slider><paper-input value="{{wlvalmax}}"></paper-input>
+                            <paper-input value="{{props.wlmin}}"></paper-input><paper-range-slider min="{{wlmin}}" max="{{wlmax}}" value-min="{{props.wlmin}}" value-max="{{props.wlmax}}"  style="width:100%"></paper-range-slider><paper-input value="{{props.wlmax}}"></paper-input>
                             </div>
                         </div>
                         <div>
                             <div>Threshold</div>
                             <div class="paper-range-slider">
-                            <paper-input value="{{thvalmin}}"></paper-input><paper-range-slider min="{{thmin}}" max="{{thmax}}" value-min="{{thvalmin}}" value-max="{{thvalmax}}"  style="width:100%"></paper-range-slider><paper-input value="{{thvalmax}}"></paper-input>
+                            <paper-input value="{{props.thmin}}"></paper-input><paper-range-slider min="{{thmin}}" max="{{thmax}}" value-min="{{props.thmin}}" value-max="{{props.thmax}}"  style="width:100%"></paper-range-slider><paper-input value="{{props.thmax}}"></paper-input>
                             </div>
                         </div>
                         <div>
@@ -218,17 +217,15 @@
                     type: Object,
                     observer: '_selectedChanged',
                 },
+                selectedIndex: {
+                    type: Number,
+                    observer: '_selectedIndexChanged',
+                },
                 // volume specific properties
                 wlmin: {
                     type: Number,
                 },
                 wlmax: {
-                    type: Number,
-                },
-                wlvalmin: {
-                    type: Number,
-                },
-                wlvalmax: {
                     type: Number,
                 },
                 thmin: {
@@ -237,15 +234,25 @@
                 thmax: {
                     type: Number,
                 },
-                thvalmin: {
-                    type: Number,
-                },
-                thvalmax: {
-                    type: Number,
-                },
+                props: {
+                    type: Object,
+                    value: {
+                        id: null,
+                        wlmax: null,
+                        wlmin: null,
+                        thmin: null,
+                        thmax: null,
+                        // interpolation
+                        // invert
+                        // lut...
+                    },
+                }
             },
             observers: [
-              '_sceneChanged(scene.*)'
+              // order matters
+              '_initState(scene.*.amiObj)',
+              '_sceneChanged(scene.*)',
+              '_propertiesChanged(props.*)',
             ],
             _sceneChanged: function() {
                 console.log(this.scene);
@@ -255,31 +262,52 @@
                 return item.type === 'volume' ? 'icons:folder' : 'editor:insert-drive-file';
            },
            _view: function(event){
-                event.stopPropagation();
-                event.preventDefault();
-                console.log(event.model.__data__.item);
                 this.set('selected', event.model.__data__.item);
            },
+           _selectedIndexChanged: function(){
+               this.set('selected', this.scene[this.selectedIndex])
+           },
            _selectedChanged: function(){
+               console.log(this.selected.amiObj.minMax);
+               console.log(this.selected.amiObj.windowCenter);
+               this.props.id = null;
                // set window Level
                this.wlmin = this.selected.amiObj.minMax[0];
                this.wlmax = this.selected.amiObj.minMax[1];
-               this.wlvalmin = Math.round( this.selected.amiObj.windowCenter - this.selected.amiObj.windowWidth / 2);
-               this.wlvalmax = Math.round( this.selected.amiObj.windowCenter + this.selected.amiObj.windowWidth / 2);
+               this.set(['props','wlmin'], Math.round( this.selected.amiObj.windowCenter - this.selected.amiObj.windowWidth / 2));
+               this.set(['props','wlmax'], Math.round( this.selected.amiObj.windowCenter + this.selected.amiObj.windowWidth / 2));
 
                // set threshold
                this.thmin = this.selected.amiObj.minMax[0];
                this.thmax = this.selected.amiObj.minMax[1];
-               this.thvalmin = this.thmin;
-               this.thvalmax = this.thmax;
+               this.props.thmin = this.thmin;
+               this.props.thmax = this.thmax;
 
-               // set LUT somehow...
+               this.props.id = this.selected.id;
            },
            _volumeSelected: function(selected){
                if(!selected) return false;
 
                return selected.type === 'volume';
-           }
+           },
+           _propertiesChanged: function(){
+                console.log('_propertiesChanged');
+                if(this.props.id === null) return;
+
+                var  event = new CustomEvent(('properties-changed'), {
+                    detail: {
+                        properties: this.props,
+                        }
+                });
+
+                this.dispatchEvent(event);
+            },
+            _initState: function(value){
+                console.log(value);
+                // init object state
+                console.log('init state');
+                console.log(this.selected);
+            }
         });
     </script>
 

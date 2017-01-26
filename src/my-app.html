@@ -37,6 +37,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --app-third-color: #757575;
 
         --app-accent-color: #03a9f4;
+        --app-light-accent-color: #b3e5fc;
         --app-dark-accent-color: #01579b;
 
         --paper-tab-ink: var(--app-accent-color);
@@ -150,9 +151,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         position: absolute;
         bottom: 0px;
       }
-
-
-
     </style>
 
     <app-toolbar>
@@ -163,7 +161,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       <module-manager id="manager" class="controls">
         <module-fileBrowser id="module-fileBrowser" class="module" label="data" files=[[files]] on-load-data="_loadData"></module-fileBrowser>
-        <module-scene id="module-scene" class="module" label="scene" scene="[[scene]]"></module-scene>
+        <module-scene id="module-scene" class="module" label="scene" scene="[[scene]]" on-properties-changed="_propertiesChanged"></module-scene>
         <module-editor id="module-editor" class="module" label="editor"></module-editor>
       </module-manager>
 
@@ -192,20 +190,29 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: Array,
           value: [
             {data:{
-              fname: 'Ixcvxcvxcv',
+              fname: 'dicom/adi_brain/36444280',
             }},
             {data:{
-              fname: 'Ixcvxcvxcv/AM',
+              fname: 'dicom/adi_brain/36444294',
             }},
             {data:{
-              fname: 'yes',
+              fname: 'dicom/adi_brain/36444308',
             }},
             {data:{
-              fname: 'a/cool/file',
+              fname: 'dicom/adi_brain/36444322',
             }},
             {data:{
-              fname: 'me/too',
-            }}
+              fname: 'dicom/adi_brain/36444336',
+            }},
+            {data:{
+              fname: 'nifti/eun_brain/eun_uchar_8.nii.gz',
+            }},
+            {data:{
+              fname: 'stl/adi_brain/WM.stl',
+            }},
+            {data:{
+              fname: 'options.json',
+            }},
           ]
         },
         sceneMap: {
@@ -217,6 +224,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: Array,
           value: [],
           observer: '_sceneChanged',
+        },
+        objectsMap: {
+          type: Object,
+          value: new Map(),
         }
       },
 
@@ -225,88 +236,67 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ],
 
       _loadData: function(event) {
-        var data = event.detail.data;
+        varlta;
+        // analyze data clicked
+
         // load if not alread in scene!
         if(!this.sceneMap.has(data.id)){
+          var target = this.analyze(data);
           this.sceneMap.set(data.id, data);
-          // this.scene[data.id] = data;
-          // this.set(`scene.${data.id}`, data);
-          // ami.load.then();
+
+          // go to scene page
+          this.$.manager.selected = 1;
+
+          // add to the scene empty object to trigger progressbar
+          this.push('scene', this.volume(data.id));
+
+          var index = this.scene.length - 1;
+
+          // fun 
+          var LoadersVolume = AMI.default.Loaders.Volume;
+          var loader = new LoadersVolume();
+          var files = target.files.map(function(v) {
+            return 'https://cdn.rawgit.com/FNNDSC/data/master/' + v;
+          });
+
+          // load sequence for all files
+          loader.load(files)
+          .then(function() {
+            var series = loader.data[0].mergeSeries(loader.data);
+            var stack = series[0].stack[0];
+            stack.prepare();
+
+            // get index of related data with id lookup
+            // update it
+            // select it
+
+            // update the scene manager
+            this.set(['scene', index, 'amiObj'], stack);
+            this.$.manager.loading = false;
+
+            // select it
+            this.$['module-scene'].selectedIndex = index;
+            //this.$['module-scene'].selected = this.scene[index];
+
+            // visualize it
+            var HelpersStack = AMI.default.Helpers.Stack;
+            var stackHelper = new HelpersStack(stack);
+            stackHelper.bbox.color = 0x8BC34A;
+            stackHelper.border.color = 0xF44336;
+            this.$.r3d.add(stackHelper);
+            this.objectsMap.set(data.id, stackHelper);
+          }.bind(this));
+
         }
+      },
 
-        this.$.manager.selected = 1;
-        // this.$.manager.loading = true;
+      _propertiesChanged: function(event){
+        var properties = event.detail.properties;
 
-        this.push('scene', {
-          id: 0,
-          type: 'volume',
-          style: {
-            minMax: [0, 100],
-            windowLevel: [20, 80],
-            threshold: [5, 95],
-            lut: 'BW',
-          },
-          info: {
-            size: [10,20],
-            images: 50,
-            seriesNumber: 5,
-            thickness: 1,
-            patientID: 'I\'m patient id',
-            patientBirthdate: '20142424',
-            patientAge: '234',
-            studyDescription: 'I am the stud desc',
-            seriesDescription: 'series desc',
-            stationName: 'MRE453',
-            modality: 'MR',
-            sequenceName: 'seq name',
-            studyDate: 'stud date',
-            seriesDate: 'series date',
-            acquisitionDate: 'acq date',
-            acquisitionTime: 'acq time',
-          },
-          amiObj: null
-        });
-        var index = this.scene.length - 1;
-
-        // fun 
-        var LoadersVolume = AMI.default.Loaders.Volume;
-        var loader = new LoadersVolume();
-
-        var t2 = [
-          '36444280', '36444294', '36444308', '36444322', '36444336',
-          '36444350', '36444364', '36444378', '36444392', '36444406',
-          '36748256', '36444434', '36444448', '36444462', '36444476',
-          '36444490', '36444504', '36444518', '36444532', '36746856',
-          '36746870', '36746884', '36746898', '36746912', '36746926',
-          '36746940', '36746954', '36746968', '36746982', '36746996',
-          '36747010', '36747024', '36748200', '36748214', '36748228',
-          '36748270', '36748284', '36748298', '36748312', '36748326',
-          '36748340', '36748354', '36748368', '36748382', '36748396',
-          '36748410', '36748424', '36748438', '36748452', '36748466',
-          '36748480', '36748494', '36748508', '36748522', '36748242'
-        ];
-
-        var files = t2.map(function(v) {
-          return 'https://cdn.rawgit.com/FNNDSC/data/master/dicom/adi_brain/' + v;
-        });
-
-        // load sequence for all files
-        loader.load(files)
-        .then(function() {
-          var series = loader.data[0].mergeSeries(loader.data);
-          var stack = series[0].stack[0];
-          stack.prepare();
-          this.set(['scene', index, 'amiObj'], stack);
-          this.$.manager.loading = false;
-          // attach it to scene element.
-          this.$['module-scene'].selected = this.scene[index];
-
-          var HelpersStack = AMI.default.Helpers.Stack;
-          var stackHelper = new HelpersStack(stack);
-          stackHelper.bbox.color = 0x8BC34A;
-          stackHelper.border.color = 0xF44336;
-          this.$.r3d.add(stackHelper);
-        }.bind(this));
+        // re-apply new properties
+        var stackHelper = this.objectsMap.get(properties.id);
+        stackHelper.slice.windowWidth = properties.wlmax - properties.wlmin;
+        stackHelper.slice.windowCenter = properties.wlmin + (stackHelper.slice.windowWidth/2);
 
       },
 
@@ -314,6 +304,61 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         console.log(this.scene);
 
+      },
+
+      volume: function(id){
+        // init the volume state
+        return {
+                  id: id,
+                  type: 'volume',
+                  state: {
+                    minMax: [0, 100],
+                    windowLevel: [20, 80],
+                    threshold: [5, 95],
+                    lut: 'BW',
+                  },
+                  info: {
+                    size: [10,20],
+                    images: 50,
+                    seriesNumber: 5,
+                    thickness: 1,
+                    patientID: 'I\'m patient id',
+                    patientBirthdate: '20142424',
+                    patientAge: '234',
+                    studyDescription: 'I am the stud desc',
+                    seriesDescription: 'series desc',
+                    stationName: 'MRE453',
+                    modality: 'MR',
+                    sequenceName: 'seq name',
+                    studyDate: 'stud date',
+                    seriesDate: 'series date',
+                    acquisitionDate: 'acq date',
+                    acquisitionTime: 'acq time',
+                  },
+                  amiObj: null
+                };
+      },
+
+      analyze: function(data){
+        var target = {
+          id: data.id,
+          files: [],
+          knownFormat: true,
+        };
+
+        if(data.children.length <= 0){
+          // single file
+          target.files.push(data.id);
+
+        } else {
+          // get list of FILES in the directory
+          for(var i = 0; i<data.children.length; i++){
+            if(data.children[i].children.length <= 0){
+              target.files.push(data.children[i].id);
+            }
+          }
+        }
+        return target;
       },
 
       clickInput: function(evt) {
