@@ -38,7 +38,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           meshes: {
               type: Array,
               value: [],
-              observer: '_meshesChanged',
+              //observer: '_meshesChanged',
           },
           scene: {
               type: Object,
@@ -82,8 +82,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // Setup camera
         this.camera = new THREE.PerspectiveCamera(45, this.$.container.clientWidth / this.$.container.clientHeight, 0.01, 10000000);
         this.camera.position.x = 150;
-        this.camera.position.y = 150;
+        this.camera.position.y = -150;
         this.camera.position.z = 100;
+
+        // light?
+        this.light = new THREE.DirectionalLight( 0xffffff, 1 );
+        this.light.position.copy( this.camera.position );
+        this.scene.add(this.light);
 
         // Setup controls
         this.controls = new ControlsTrackball(this.camera, this.$.container);
@@ -98,6 +103,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       animate: function( ){
         this.animationFrameID = window.requestAnimationFrame( this.animate.bind(this) );
         this.controls.update();
+        this.light.position.copy( this.camera.position );
         this.renderer.render( this.scene, this.camera );
       },
 
@@ -115,11 +121,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     
         this.scene.add(stackHelper);
 
-        var centerLPS = stackHelper.stack.worldCenter();
-        this.camera.lookAt(centerLPS.x, centerLPS.y, centerLPS.z);
-        this.camera.updateProjectionMatrix();
-        this.controls.target.set(centerLPS.x, centerLPS.y, centerLPS.z);
-        this.controls.handleResize();
+        if(stackHelper.stack) {
+            var centerLPS = stackHelper.stack.worldCenter();
+            this.camera.lookAt(centerLPS.x, centerLPS.y, centerLPS.z);
+            this.camera.updateProjectionMatrix();
+            this.controls.target.set(centerLPS.x, centerLPS.y, centerLPS.z);
+            this.controls.handleResize();
+        }
+
       }
     });
   </script>

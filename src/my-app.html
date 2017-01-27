@@ -17,6 +17,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 
 <link rel="import" href="../bower_components/ami-import/ami-import.html">
+<script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/STLLoader.js"></script>
+
 
 <link rel="import" href="ami-3d/ami-3d.html">
 
@@ -161,7 +163,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       <module-manager id="manager" class="controls">
         <module-fileBrowser id="module-fileBrowser" class="module" label="data" files=[[files]] on-load-data="_loadData"></module-fileBrowser>
-        <module-scene id="module-scene" class="module" label="scene" scene="[[scene]]" on-properties-changed="_propertiesChanged"></module-scene>
+        <module-scene id="module-scene" class="module" label="scene" scene="[[scene]]" on-state-changed="_stateChanged"></module-scene>
         <module-editor id="module-editor" class="module" label="editor"></module-editor>
       </module-manager>
 
@@ -236,128 +238,204 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ],
 
       _loadData: function(event) {
-        varlta;
-        // analyze data clicked
+        var data = event.detail.data;
+        var formatedData = this.analyze(data);
 
         // load if not alread in scene!
-        if(!this.sceneMap.has(data.id)){
-          var target = this.analyze(data);
-          this.sceneMap.set(data.id, data);
-
+        if(formatedData.type !== null && !this.sceneMap.has(data.id)) {
+          this.sceneMap.set(data.id, formatedData);
           // go to scene page
           this.$.manager.selected = 1;
 
-          // add to the scene empty object to trigger progressbar
-          this.push('scene', this.volume(data.id));
+          // add to the scene
+          this.push('scene', formatedData);
 
-          var index = this.scene.length - 1;
+          if(formatedData.type === 'volume'){
+            // load the data! 
+            var LoadersVolume = AMI.default.Loaders.Volume;
+            var loader = new LoadersVolume();
+            var files = formatedData.files.map(function(v) {
+              return 'https://cdn.rawgit.com/FNNDSC/data/master/' + v;
+            });
 
-          // fun 
-          var LoadersVolume = AMI.default.Loaders.Volume;
-          var loader = new LoadersVolume();
-          var files = target.files.map(function(v) {
-            return 'https://cdn.rawgit.com/FNNDSC/data/master/' + v;
-          });
+            // load sequence for all files
+            // load a volume
+            loader.load(files)
+            .then(function() {
+              var series = loader.data[0].mergeSeries(loader.data);
+              var stack = series[0].stack[0];
+              stack.prepare();
 
-          // load sequence for all files
-          loader.load(files)
-          .then(function() {
-            var series = loader.data[0].mergeSeries(loader.data);
-            var stack = series[0].stack[0];
-            stack.prepare();
+              // update object
+              var obj = this.sceneMap.get(data.id);
+              this.updateVolumeObject(obj, stack);
 
-            // get index of related data with id lookup
-            // update it
-            // select it
+              // update ready to make sure all watchers get notifies
+              var pos = this.scene.map(function(e) { return e.id; }).indexOf(data.id);
+              this.set(['scene', pos, 'ready'], obj.ready);
 
-            // update the scene manager
-            this.set(['scene', index, 'amiObj'], stack);
-            this.$.manager.loading = false;
+              // select it
+              this.$['module-scene'].selected = pos;
 
-            // select it
-            this.$['module-scene'].selectedIndex = index;
-            //this.$['module-scene'].selected = this.scene[index];
+              // visualize it
+              var HelpersStack = AMI.default.Helpers.Stack;
+              var stackHelper = new HelpersStack(stack);
+              stackHelper.bbox.color = 0x8BC34A;
+              stackHelper.border.color = 0xF44336;
+              this._updateState(data, stackHelper, obj.state);
+              this.$.r3d.add(stackHelper);
+              this.objectsMap.set(data.id, stackHelper);
+            }.bind(this));
 
-            // visualize it
-            var HelpersStack = AMI.default.Helpers.Stack;
-            var stackHelper = new HelpersStack(stack);
-            stackHelper.bbox.color = 0x8BC34A;
-            stackHelper.border.color = 0xF44336;
-            this.$.r3d.add(stackHelper);
-            this.objectsMap.set(data.id, stackHelper);
-          }.bind(this));
+          } else if(formatedData.type === 'mesh') {
+            // load a mesh
+            var files = formatedData.files.map(function(v) {
+              return 'https://cdn.rawgit.com/FNNDSC/data/master/' + v;
+            });
+            var loaderSTL = new THREE.STLLoader();
+            loaderSTL.load(files[0],
+              function(geometry) {
+
+                var material = new THREE.MeshPhongMaterial(
+                  {color: 0xF44336, specular: 0x111111, shininess: 200, transparent: true, opacity: 1});
+                var mesh = new THREE.Mesh(geometry, material);
+                // to LPS space
+                var RASToLPS = new THREE.Matrix4();
+                RASToLPS.set(-1, 0, 0, 0,
+                              0, -1, 0, 0,
+                              0, 0, 1, 0,
+                              0, 0, 0, 1);
+                mesh.applyMatrix(RASToLPS);
+
+                // update object
+                var obj = this.sceneMap.get(data.id);
+                this.updateMeshObject(obj, geometry, material);
+
+                // update ready to make sure all watchers get notifies
+                var pos = this.scene.map(function(e) { return e.id; }).indexOf(data.id);
+                this.set(['scene', pos, 'ready'], obj.ready);
+
+                // select it
+                this.$['module-scene'].selected = pos;
+
+                // visualize it                
+                this._updateState(data, mesh, obj.state);
+                this.$.r3d.add(mesh);
+                this.objectsMap.set(data.id, mesh);
+            }.bind(this));
+          }
 
         }
       },
 
-      _propertiesChanged: function(event){
-        var properties = event.detail.properties;
+      _stateChanged: function(event) {
+        console.log(event);
+        var mesh = this.objectsMap.get(event.detail.id);
+        var data = this.sceneMap.get(event.detail.id);
+        this._updateState(data, mesh, event.detail.state);
+      },
 
-        // re-apply new properties
-        var stackHelper = this.objectsMap.get(properties.id);
-        stackHelper.slice.windowWidth = properties.wlmax - properties.wlmin;
-        stackHelper.slice.windowCenter = properties.wlmin + (stackHelper.slice.windowWidth/2);
+      _updateState: function(data, mesh, state) {
+        mesh.visible = state.visible;
 
+        if(data.type === 'volume') {
+          mesh.slice.windowCenter = state.windowLevel[0];
+          mesh.slice.windowWidth = state.windowLevel[1];
+          mesh.slice.interpolation = state.interpolation? 1 : 0;
+        } else if(data.type === 'mesh') {
+          mesh.material.opacity = state.opacity;
+        }
       },
 
       _sceneChanged: function(){
 
-        console.log(this.scene);
+        //console.log(this.scene);
 
       },
 
-      volume: function(id){
-        // init the volume state
-        return {
-                  id: id,
-                  type: 'volume',
-                  state: {
-                    minMax: [0, 100],
-                    windowLevel: [20, 80],
-                    threshold: [5, 95],
-                    lut: 'BW',
-                  },
-                  info: {
-                    size: [10,20],
-                    images: 50,
-                    seriesNumber: 5,
-                    thickness: 1,
-                    patientID: 'I\'m patient id',
-                    patientBirthdate: '20142424',
-                    patientAge: '234',
-                    studyDescription: 'I am the stud desc',
-                    seriesDescription: 'series desc',
-                    stationName: 'MRE453',
-                    modality: 'MR',
-                    sequenceName: 'seq name',
-                    studyDate: 'stud date',
-                    seriesDate: 'series date',
-                    acquisitionDate: 'acq date',
-                    acquisitionTime: 'acq time',
-                  },
-                  amiObj: null
-                };
+      updateVolumeObject: function(object, stack) {
+        // update information
+        object.info = {
+          minMax: stack.minMax,
+          size: [stack.columns, stack.rows],
+          images: stack.frame.length,
+          seriesNumber: null,
+          thickness: stack.sliceThickness,
+          patientID: null,
+          patientBirthdate: null,
+          patientAge: null,
+          studyDescription: null,
+          seriesDescription: null,
+          stationName: null,
+          modality: stack.modality,
+          sequenceName: null,
+          studyDate: null,
+          seriesDate: null,
+          acquisitionDate: null,
+          acquisitionTime: null,
+        };
+
+        // update state
+        object.state = {
+          visible: true,
+          interpolation: true,
+          windowLevel: [stack.windowCenter, stack.windowWidth],
+          threshold: null,
+          lut: 'B/W',
+        };
+
+        // ready!
+        object.ready = true;
+      },
+  
+      updateMeshObject: function(object, geometry, material) {
+        // update information
+        object.info = {
+
+        };
+
+        // update state
+        object.state = {
+          visible: true,
+          color: material.color,
+          opacity: material.opacity,
+          shininess: material.shininess,
+        };
+
+        // ready!
+        object.ready = true;
       },
 
-      analyze: function(data){
+      analyze: function(data) {
         var target = {
           id: data.id,
           files: [],
-          knownFormat: true,
+          type: null,
+          ready: false,
         };
 
-        if(data.children.length <= 0){
+        if(data.children.length <= 0) {
           // single file
           target.files.push(data.id);
-
         } else {
           // get list of FILES in the directory
-          for(var i = 0; i<data.children.length; i++){
-            if(data.children[i].children.length <= 0){
+          for(var i = 0; i<data.children.length; i++) {
+            if(data.children[i].children.length <= 0) {
               target.files.push(data.children[i].id);
             }
           }
         }
+
+        if(target.files.length > 0) {
+          // we are on something!
+          // no extension, .dcm, .nii or .nii.gz: type volume
+          if(target.files[0].includes('.stl')) {
+            target.type = 'mesh';
+          } else {
+            target.type = 'volume';
+          }
+        }
+
         return target;
       },
 

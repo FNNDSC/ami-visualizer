@@ -19,6 +19,7 @@
             text-transform: uppercase;
         }
         </style>
+
         <paper-tabs selected="{{selected}}">
             <template is="dom-repeat" items="{{modules}}"><paper-tab>{{item.label}}</paper-tab></template>
             <!-- POLYMER 2.0 -->
@@ -26,7 +27,6 @@
                 <template><paper-tab>{{item.label}}</paper-tab></template>
             </dom-repeat>-->
         </paper-tabs>
-                                <!--<paper-progress indeterminate class="blue"></paper-progress>-->
 
         <iron-pages class="controls-pages" selected="{{selected}}">
           <slot id="modules"></slot>
@@ -44,10 +44,6 @@
                 selected: {
                     type: String,
                     value: 0,
-                },
-                loading: {
-                     type: Boolean,
-                     value: false,
                 },
             },
             ready: function() {
