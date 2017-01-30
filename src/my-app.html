@@ -297,7 +297,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               function(geometry) {
 
                 var material = new THREE.MeshPhongMaterial(
-                  {color: 0xF44336, specular: 0x111111, shininess: 200, transparent: true, opacity: 1});
+                  {color: 0xF44336, specular: 0x111111, shininess: 100, transparent: true, opacity: 1});
                 var mesh = new THREE.Mesh(geometry, material);
                 // to LPS space
                 var RASToLPS = new THREE.Matrix4();
@@ -329,7 +329,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _stateChanged: function(event) {
-        console.log(event);
         var mesh = this.objectsMap.get(event.detail.id);
         var data = this.sceneMap.get(event.detail.id);
         this._updateState(data, mesh, event.detail.state);
@@ -344,6 +343,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           mesh.slice.interpolation = state.interpolation? 1 : 0;
         } else if(data.type === 'mesh') {
           mesh.material.opacity = state.opacity;
+          mesh.material.color.set(state.color);
+          mesh.material.shininess = state.shininess;
         }
       },
 
@@ -397,7 +398,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // update state
         object.state = {
           visible: true,
-          color: material.color,
+          color: `#${material.color.getHexString()}`,
           opacity: material.opacity,
           shininess: material.shininess,
         };

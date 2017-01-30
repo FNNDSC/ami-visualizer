@@ -18,7 +18,10 @@
 <link rel="import" href="../../bower_components/paper-tabs/paper-tab.html">
 <link rel="import" href="../../bower_components/paper-range-slider/paper-range-slider.html">
 <link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../../bower_components/paper-swatch-picker/paper-swatch-picker.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<link rel="import" href="module-scene-icons.html">
 
 <dom-module id="module-scene">
     <template>
@@ -35,7 +38,7 @@
             --paper-range-slider-pin-color: var(--app-accent-color);
         }
 
-        .paper-range-slider {
+        .paper-range-slider{
             display: flex;
         }
 
@@ -116,10 +119,15 @@
 
         .oneliner {
             display: flex;
+            align-items: center;
         }
 
         .oneliner > paper-toggle-button {
             margin-right: 4px;
+        }
+
+        paper-slider {
+            width: 100%;
         }
         </style>
 
@@ -173,11 +181,11 @@
                     <template is="dom-if" if="{{_volumeSelected(scene,selected)}}">
 
                         <div>
-                            <div class="oneliner"><paper-toggle-button checked="{{visibleValue}}"></paper-toggle-button>Visible</paper-toggle-button></div>
+                            <div class="oneliner"><paper-toggle-button checked="{{visibleVolumeValue}}"></paper-toggle-button>Show/Hide</div>
                         </div>
 
                         <div>
-                            <div class="oneliner"><paper-toggle-button checked="{{interpolationValue}}"></paper-toggle-button>Pixel interpolation</div>
+                            <div class="oneliner"><paper-toggle-button checked="{{interpolationValue}}"></paper-toggle-button>Voxel interpolation</div>
                         </div>
 
                         <div>
@@ -186,7 +194,7 @@
                             <paper-input value="{{wlminValue}}"></paper-input><paper-range-slider min="{{wlmin}}" max="{{wlmax}}" value-min="{{wlminValue}}" value-max="{{wlmaxValue}}"  style="width:100%"></paper-range-slider><paper-input value="{{wlmaxValue}}"></paper-input>
                             </div>
                         </div>
-                        <div>
+                        <!--<div>
                             <div>Threshold</div>
                             <div class="paper-range-slider">
                             <paper-input value="{{thminValue}}"></paper-input><paper-range-slider min="{{thmin}}" max="{{thmax}}" value-min="{{thminValue}}" value-max="{{thmaxValue}}"  style="width:100%"></paper-range-slider><paper-input value="{{thmaxValue}}"></paper-input>
@@ -204,18 +212,18 @@
                                 </paper-listbox>
                             </paper-dropdown-menu>
                             </div>
-                        </div>
+                        </div>-->
                     </template>
 
                     <!-- mesh selected-->
                     <template is="dom-if" if="{{_meshSelected(scene,selected)}}">
 
                         <div>
-                            <div class="oneliner"><paper-toggle-button checked="{{visibleValue}}"></paper-toggle-button>Visible</paper-toggle-button></div>
+                            <div class="oneliner"><paper-toggle-button checked="{{visibleMeshValue}}"></paper-toggle-button>Show/Hide</paper-toggle-button></div>
                         </div>
 
                         <div>
-                            <div class="oneliner"><paper-toggle-button checked="{{colorValue}}"></paper-toggle-button>Color</div>
+                            <div class="oneliner"><paper-swatch-picker color="{{colorValue}}"></paper-swatch-picker>Color</div>
                         </div>
 
                         <div>
@@ -224,7 +232,7 @@
                         </div>
                         <div>
                             <div>Shininess</div>
-                            <paper-slider editable></paper-slider>
+                            <paper-slider editable immediate-value="{{shininessValue}}" value="{{shininessValue}}" min="0" max="100"></paper-slider>
                         </div>
                     </template>
                 
@@ -263,15 +271,14 @@
                 updateState: {
                     type: Boolean,
                 },
-                //
-                // common properties
-                visibleValue: {
-                    type: Boolean
-                },
-                //
                 // volume specific properties
+                visibleVolumeValue: {
+                    type: Boolean,
+                    value: false,
+                },
                 interpolationValue: {
-                    type: Boolean
+                    type: Boolean,
+                    value: false,
                 },
                 // window level
                 wlmin: {
@@ -282,9 +289,11 @@
                 },
                 wlminValue: {
                     type: Number,
+                    value: 0,
                 },
                 wlmaxValue: {
                     type: Number,
+                    value: 100,
                 },
                 wlValue: {
                     type: Array,
@@ -299,20 +308,35 @@
                 },
                 thminValue: {
                     type: Number,
+                    value: 0,
                 },
                 thmaxValue: {
                     type: Number,
+                    value: 100,
                 },
                 //
                 // mesh specific properties
+                visibleMeshValue: {
+                    type: Boolean,
+                    value: false,
+                },
                 opacityValue: {
                     type: Number,
-                }
+                    value: 0,
+                },
+                colorValue: {
+                    type: String,
+                    value: '#FFFFFF',
+                },
+                shininessValue: {
+                    type: Number,
+                    value: '50',
+                },
             },
             observers: [
               // order matters
               '_sceneChanged(scene.*)',
-              '_updateState(visibleValue, interpolationValue, wlminValue, wlmaxValue, opacityValue)'
+              '_updateState(visibleVolumeValue, interpolationValue, wlminValue, wlmaxValue, visibleMeshValue, opacityValue, colorValue, shininessValue)'
             ],
             _sceneChanged: function(changeRecords) {
                 // something was added/removed
@@ -331,7 +355,7 @@
                 }
             },
             _computeIcon: function(item) {
-                return item.type === 'volume' ? 'icons:folder' : 'editor:insert-drive-file';
+                return item.type === 'volume' ? 'myicons:filter' : 'myicons:whatshot';
            },
            _selectedChanged: function() {
                console.log('selected changed');
@@ -342,6 +366,7 @@
                //this.setMore();
            },
            setStyle: function(object) {
+               console.log('set style');
                console.log(object);
                // update type specific properties
                if(object.type === 'volume') {
@@ -352,17 +377,18 @@
                 this.thmax = object.info.minMax[1];
 
                 // update values
-                this.visibleValue = object.state.visible;
+                this.visibleVolumeValue = object.state.visible;
                 this.interpolationValue = object.state.interpolation;
                 this.wlminValue = object.state.windowLevel[0] - object.state.windowLevel[1]/2;
                 this.wlmaxValue = object.state.windowLevel[0] + object.state.windowLevel[1]/2;
                }
                else if(object.type === 'mesh') {
                  // update values
+                 this.visibleMeshValue = object.state.visible;
                  this.opacityValue = object.state.opacity;
+                 this.colorValue = object.state.color;
+                 this.shininessValue = object.state.shininess;
                }
-
-               this.visibleValue = object.state.visible;
            },
            _updateState: function(){
                console.log('updateState');
@@ -370,12 +396,16 @@
 
                // update state
                var target = this.scene[this.selected];
-               target.state.visible = this.visibleValue;
+
                if(target.type === 'volume') {
+                target.state.visible = this.visibleVolumeValue;
                 target.state.interpolation = this.interpolationValue;
                 target.state.windowLevel = this.wlValue;
                } else if(target.type === 'mesh') {
+                target.state.visible = this.visibleMeshValue;
                 target.state.opacity = this.opacityValue;
+                target.state.color = this.colorValue;
+                target.state.shininess = this.shininessValue;
                }
 
                var  event = new CustomEvent(('state-changed'), {
