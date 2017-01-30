@@ -11,11 +11,17 @@
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../../bower_components/paper-tabs/paper-tab.html">
 <link rel="import" href="../../bower_components/paper-range-slider/paper-range-slider.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../../bower_components/paper-swatch-picker/paper-swatch-picker.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<link rel="import" href="module-scene-icons.html">
 
 </head><body><dom-module id="module-scene">
     <template>
@@ -32,13 +38,17 @@
             --paper-range-slider-pin-color: var(--app-accent-color);
         }
 
-        .paper-range-slider {
+        .paper-range-slider{
             display: flex;
         }
 
         .paper-range-slider paper-input{
             width: 50px;
             overflow: hidden;
+        }
+
+        paper-progress {
+            --paper-progress-active-color: var(--app-accent-color);
         }
 
         .controls-scene-select {
@@ -85,6 +95,9 @@
             --paper-item: {
                 cursor: pointer;
             };
+            --paper-item-selected: {
+                background-color: var(--app-light-accent-color);
+            }
         }
 
         .avatar {
@@ -103,38 +116,47 @@
         paper-progress {
             width: inherit;
         }
+
+        .oneliner {
+            display: flex;
+            align-items: center;
+        }
+
+        .oneliner > paper-toggle-button {
+            margin-right: 4px;
+        }
+
+        paper-slider {
+            width: 100%;
+        }
         </style>
 
         <div class="controls-scene-select">
             <div class="controls-scene-select-list">
 
-                <template is="dom-repeat" items="[[scene]]">
-                            <paper-icon-item class="menu-trigger" on-tap="_view">
-            
-            
-            <paper-icon-button item-icon="" icon$="{{_computeIcon(item)}}" alt="favourite this!" class="avatar grey">
-            </paper-icon-button>
-            <paper-item-body two-line="">
+                <paper-listbox selected="{{selected}}">
 
+                    <template is="dom-repeat" items="[[scene]]">
+                        <paper-icon-item class="menu-trigger">
+                            <paper-icon-button item-icon="" icon$="{{_computeIcon(item)}}" alt="favourite this!" class="avatar grey">
+                            </paper-icon-button>
+                            <paper-item-body two-line="">
 
-            
-    <template is="dom-if" if="{{item.seriesInstanceUID}}">
-            <div>{{item.seriesInstanceUID}}</div>
-            <div secondary="">contains [[item.stack.0.frame.length]] frames</div>
-    </template>
+                                <template is="dom-if" if="{{item.ready}}">
+                                    <div>[[item.id]]</div>
+                                    <div secondary="">[[item.info.modality]] ([[item.info.images]] images)</div>
+                                </template>
 
+                                <template is="dom-if" if="{{!item.ready}}">
+                                    <div secondary="">Loading data...</div>
+                                    <paper-progress indeterminate="" class="blue"></paper-progress>
+                                </template>
 
-    <template is="dom-if" if="{{!item.seriesInstanceUID}}">
-            <div secondary="">Loading data...</div>
-            <paper-progress indeterminate="" class="blue"></paper-progress>
-    </template>
+                            </paper-item-body>
+                        </paper-icon-item>
+                    </template>
 
-            </paper-item-body>
-
-        </paper-icon-item>
-
-                    
-                </template>
+                </paper-listbox>
 
             </div>
 
@@ -155,31 +177,47 @@
             <iron-pages class="controls-scene-properties-pages" selected="{{selectedProperty}}">
                 
                 <div class="controls-scene-properties-appearance">
-                <div>
-                    <div>Window/Level</div>
-                    <div class="paper-range-slider">
-                    <paper-input></paper-input><paper-range-slider style="width:100%"></paper-range-slider><paper-input></paper-input>
-                    </div>
-                </div>
-                <div>
-                    <div>Threshold</div>
-                    <div class="paper-range-slider">
-                    <paper-input></paper-input><paper-range-slider style="width:100%"></paper-range-slider><paper-input></paper-input>
-                    </div>
-                </div>
-                <div>
-                    <div>LUT</div>
-                    <div>
-                    <paper-dropdown-menu label="Lookup table" vertical-align="bottom">
-                        <paper-listbox class="dropdown-content" selected="0">
-                        <paper-item>Black/White</paper-item>
-                        <paper-item>Rainbow</paper-item>
-                        <paper-item>Red</paper-item>
-                        <paper-item>Heat</paper-item>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                    </div>
-                </div>
+                    
+                    <template is="dom-if" if="{{_volumeSelected(scene,selected)}}">
+
+                        <div>
+                            <div class="oneliner"><paper-toggle-button checked="{{visibleVolumeValue}}"></paper-toggle-button>Show/Hide</div>
+                        </div>
+
+                        <div>
+                            <div class="oneliner"><paper-toggle-button checked="{{interpolationValue}}"></paper-toggle-button>Voxel interpolation</div>
+                        </div>
+
+                        <div>
+                            <div>Window/Level</div>
+                            <div class="paper-range-slider">
+                            <paper-input value="{{wlminValue}}"></paper-input><paper-range-slider min="{{wlmin}}" max="{{wlmax}}" value-min="{{wlminValue}}" value-max="{{wlmaxValue}}" style="width:100%"></paper-range-slider><paper-input value="{{wlmaxValue}}"></paper-input>
+                            </div>
+                        </div>
+                        
+                    </template>
+
+                    
+                    <template is="dom-if" if="{{_meshSelected(scene,selected)}}">
+
+                        <div>
+                            <div class="oneliner"><paper-toggle-button checked="{{visibleMeshValue}}"></paper-toggle-button>Show/Hide</div>
+                        </div>
+
+                        <div>
+                            <div class="oneliner"><paper-swatch-picker color="{{colorValue}}"></paper-swatch-picker>Color</div>
+                        </div>
+
+                        <div>
+                            <div>Opacity</div>
+                            <paper-slider editable="" immediate-value="{{opacityValue}}" value="{{opacityValue}}" min="0" max="1" step="0.01"></paper-slider>
+                        </div>
+                        <div>
+                            <div>Shininess</div>
+                            <paper-slider editable="" immediate-value="{{shininessValue}}" value="{{shininessValue}}" min="0" max="100"></paper-slider>
+                        </div>
+                    </template>
+                
                 </div>
 
                 <div class="controls-scene-properties-info">
@@ -196,6 +234,6 @@
         </div>
 
     </template>
-    <script>Polymer({is:"module-scene",properties:{scene:{type:Array,value:[]},selectedProperty:{type:String,value:0},selected:{type:Object,value:{}}},observers:["_sceneChanged(scene.*)"],_sceneChanged:function(){console.log(this.scene)},_computeIcon:function(e){return console.log(e),e.stack[0].frame.length?"icons:folder":"editor:insert-drive-file"},_view:function(e){e.stopPropagation(),e.preventDefault(),console.log(e.model.__data__.item)}});</script>
+    <script>Polymer({is:"module-scene",properties:{scene:{type:Array,value:[]},selected:{type:Number,observer:"_selectedChanged"},selectedProperty:{type:Number,value:0},updateState:{type:Boolean},visibleVolumeValue:{type:Boolean,value:!1},interpolationValue:{type:Boolean,value:!1},wlmin:{type:Number},wlmax:{type:Number},wlminValue:{type:Number,value:0},wlmaxValue:{type:Number,value:100},wlValue:{type:Array,computed:"_computeWindowLevel(wlminValue, wlmaxValue)"},thmin:{type:Number},thmax:{type:Number},thminValue:{type:Number,value:0},thmaxValue:{type:Number,value:100},visibleMeshValue:{type:Boolean,value:!1},opacityValue:{type:Number,value:0},colorValue:{type:String,value:"#FFFFFF"},shininessValue:{type:Number,value:"50"}},observers:["_sceneChanged(scene.*)","_updateState(visibleVolumeValue, interpolationValue, wlminValue, wlmaxValue, visibleMeshValue, opacityValue, colorValue, shininessValue)"],_sceneChanged:function(e){if(e.path.includes(".splices")){var t=e.value.keySplices;if(t[0].added.length>=0){t[0].added[0]}else{t[0].removed[0]}}else e.path.includes(".#")&&console.log(e)},_computeIcon:function(e){return"volume"===e.type?"myicons:filter":"myicons:whatshot"},_selectedChanged:function(){console.log("selected changed"),this.updateState=!1,this.setStyle(this.scene[this.selected]),this.updateState=!0},setStyle:function(e){console.log("set style"),console.log(e),"volume"===e.type?(this.wlmin=e.info.minMax[0],this.wlmax=e.info.minMax[1],this.thmin=e.info.minMax[0],this.thmax=e.info.minMax[1],this.visibleVolumeValue=e.state.visible,this.interpolationValue=e.state.interpolation,this.wlminValue=e.state.windowLevel[0]-e.state.windowLevel[1]/2,this.wlmaxValue=e.state.windowLevel[0]+e.state.windowLevel[1]/2):"mesh"===e.type&&(this.visibleMeshValue=e.state.visible,this.opacityValue=e.state.opacity,this.colorValue=e.state.color,this.shininessValue=e.state.shininess)},_updateState:function(){if(console.log("updateState"),this.updateState){var e=this.scene[this.selected];"volume"===e.type?(e.state.visible=this.visibleVolumeValue,e.state.interpolation=this.interpolationValue,e.state.windowLevel=this.wlValue):"mesh"===e.type&&(e.state.visible=this.visibleMeshValue,e.state.opacity=this.opacityValue,e.state.color=this.colorValue,e.state.shininess=this.shininessValue);var t=new CustomEvent("state-changed",{detail:{id:e.id,state:e.state}});this.dispatchEvent(t)}},_volumeSelected:function(e,t){return!!e&&"volume"===e[t].type},_meshSelected:function(e,t){return!!e&&"mesh"===e[t].type},_computeWindowLevel:function(e,t){var l=t-e,a=e+l/2;return[a,l]}});</script>
 
 </dom-module></body></html>

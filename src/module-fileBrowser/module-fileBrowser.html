@@ -88,6 +88,6 @@
             </div>
 
     </template>
-    <script>Polymer({is:"module-fileBrowser",properties:{files:{type:Array},tree:{type:Array,value:[]},plugin:{type:Object,value:{}}},_treeChanged:function(e){console.log(e.detail.tree),this.set("tree",e.detail.tree)}});</script>
+    <script>Polymer({is:"module-fileBrowser",properties:{files:{type:Array},tree:{type:Array,value:[]},plugin:{type:Object,value:{}}},_treeChanged:function(e){console.log(e.detail.tree),this.set("tree",e.detail.tree[0].children)}});</script>
 
 </dom-module></body></html>
