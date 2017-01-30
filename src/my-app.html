@@ -16,6 +16,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
 
+<script>
+  // create THREE Namespace
+  var THREE = THREE || {};
+</script>
 <link rel="import" href="../bower_components/ami-import/ami-import.html">
 <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/STLLoader.js"></script>
 
@@ -398,7 +402,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // update state
         object.state = {
           visible: true,
-          color: `#${material.color.getHexString()}`,
+          color: '#' + material.color.getHexString(),
           opacity: material.opacity,
           shininess: material.shininess,
         };
